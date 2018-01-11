@@ -1,11 +1,12 @@
-from pyVmomi import vim
-import threading
-import time
 import logging
+import threading
+
+import time
+from pyVmomi import vim
 
 
 class InventoryManager(threading.Thread):
-    def __init__(self, si, refresh_interval, vc_name, instance_id,  *args, **kwargs):
+    def __init__(self, si, refresh_interval, vc_name, instance_id, *args, **kwargs):
         self._si = si
         self._refresh_interval = refresh_interval
         self.vc_name = vc_name
@@ -20,10 +21,10 @@ class InventoryManager(threading.Thread):
 
     def _new_cache(self):
         cache = {
-            'datacenters': [],
-            'clusters': [],
-            'hosts': [],
-            'vms': []
+            'datacenter': [],
+            'cluster': [],
+            'host': [],
+            'vm': []
         }
         return cache
 
@@ -34,13 +35,13 @@ class InventoryManager(threading.Thread):
 
         elif isinstance(mor, vim.Datacenter):
             datacenter = Datacenter(mor, self._perf_manager, self.vc_name)
-            cache['datacenters'].append(datacenter)
+            cache['datacenter'].append(datacenter)
             for item in mor.hostFolder.childEntity:
                 self._sync(item, cache, datacenter.mor_dimensions)
 
         elif isinstance(mor, vim.ClusterComputeResource):
             cluster = Cluster(mor, self._perf_manager, self.vc_name, meta_dims)
-            cache['clusters'].append(cluster)
+            cache['cluster'].append(cluster)
             for host in mor.host:
                 if hasattr(host, 'vm'):
                     self._sync(host, cache, cluster.mor_dimensions)
@@ -52,13 +53,13 @@ class InventoryManager(threading.Thread):
 
         elif isinstance(mor, vim.HostSystem):
             host = Host(mor, self._perf_manager, self.vc_name, meta_dims)
-            cache['hosts'].append(host)
+            cache['host'].append(host)
             for vm in mor.vm:
                 if vm.runtime.powerState == 'poweredOn':
                     self._sync(vm, cache, host.mor_dimensions)
 
         elif isinstance(mor, vim.VirtualMachine):
-            cache['vms'].append(VirtualMachine(mor, self._perf_manager, self.vc_name, meta_dims))
+            cache['vm'].append(VirtualMachine(mor, self._perf_manager, self.vc_name, meta_dims))
 
         else:
             self._logger.error("Unhandled managed object: {0}".format(mor))

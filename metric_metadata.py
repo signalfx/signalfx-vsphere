@@ -1,6 +1,8 @@
-import threading
-import time
 import logging
+import threading
+
+import time
+
 import vsphere_metrics
 
 
@@ -21,18 +23,27 @@ class MetricManager(threading.Thread):
 
     def _sync_metrics(self):
         monitored_metrics = {}
+        available_metrics = {}
         for counter in self._perf_manager.perfCounter:
             metric_full_name = self._format_metric_full_name(counter)
-            if self._is_metric_allowed(metric_full_name):
-                metric_name = self._format_metric_name(counter)
-                units = self._determine_units(counter)
-                metric_type = self._determine_metric_type(counter)
-                metric = MetricInfo(metric_full_name, counter.level, metric_type, units, metric_full_name)
-                monitored_metrics[counter.key] = metric
-
+            available_metrics[metric_full_name] = counter
+        for mor in self._required_metrics.keys():
+            mor_metrics = {}
+            for metric in self._required_metrics[mor]:
+                if metric in available_metrics.keys():
+                    counter = available_metrics[metric]
+                    if counter.key not in mor_metrics.keys():
+                        mor_metrics[counter.key] = self._get_metric_info(counter, metric)
+            monitored_metrics[mor] = mor_metrics
         with self.update_lock:
             self._monitored_metrics = monitored_metrics
         self._has_metrics.set()
+
+    def _get_metric_info(self, counter, metric_name):
+        units = self._determine_units(counter)
+        metric_type = self._determine_metric_type(counter)
+        metric = MetricInfo(metric_name, counter.level, metric_type, units)
+        return metric
 
     def _determine_metric_type(self, perf_counter):
         if perf_counter.statsType in ['absolute', 'rate']:
@@ -73,7 +84,8 @@ class MetricManager(threading.Thread):
             try:
                 self._sync_metrics()
             except Exception as e:
-                self._logger.warning("Exception when syncing available vCenter metrics continuing anyway: {0}".format(e))
+                self._logger.warning(
+                    "Exception when syncing available vCenter metrics continuing anyway: {0}".format(e))
             except KeyboardInterrupt:
                 break
 
@@ -90,15 +102,14 @@ class MetricManager(threading.Thread):
 
 
 class MetricInfo(object):
-    def __init__(self, name, level, metric_type, units, full_name):
+    def __init__(self, name, level, metric_type, units):
         self.name = name
         self.level = level
         self.metric_type = metric_type
         self.units = units
-        self.full_name = full_name
 
     def __str__(self):
         return ("MetricInfo(name={0},level={1},metric_type={2},units={3}"
-                .format(self.name, self.level, self.metric_type, self.units))
+            .format(self.name, self.level, self.metric_type, self.units))
 
     __repr__ = __str__

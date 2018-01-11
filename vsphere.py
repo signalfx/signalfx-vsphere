@@ -92,7 +92,6 @@ def _run(config_list):
             end_time = datetime.datetime.now()
             exec_time = (end_time - start_time).seconds
             wait_time = constants.DEFAULT_COLLECTION_INTERVAL - exec_time
-            logger.info("Execution time : {0} sec".format(exec_time))
             if wait_time < 0:
                 logger.warning("Execution took a lot of time : {0} seconds".format(exec_time))
             else:

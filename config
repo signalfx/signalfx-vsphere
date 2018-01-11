@@ -2,7 +2,11 @@ config:
   - host: 192.168.1.60
     username: administrator@vsphere.local
     password: Abcd123$
-    Name: VCenter2
+    Name: VCenter4
     MORSyncInterval: 300
     MetricSyncInterval: 300
-    EnhancedMetrics: True
+    IncludeMetrics:
+      host:
+        - random.test.metric
+      cluster:
+        - mem.usage.average

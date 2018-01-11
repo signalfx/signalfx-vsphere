@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
-import itertools
-import time
-import ssl
-import signalfx
 import logging
+import ssl
 
-from pyVmomi import vim
+import itertools
+import signalfx
+import time
 from pyVim.connect import SmartConnect
+from pyVmomi import vim
 
+import constants
 import inventory
 import metric_metadata
-import constants
 
 
 class Environment(object):
@@ -20,6 +20,7 @@ class Environment(object):
         self._host = config['host']
         self._username = config['username']
         self._password = config['password']
+        self._vc_name = config['Name']
         self._logger = logging.getLogger(self.get_instance_id())
         self._si = None
         self._connect()
@@ -64,7 +65,7 @@ class Environment(object):
             self._si = None
 
     def get_instance_id(self):
-        return "{0}".format(self._host)
+        return "{0}-{1}".format(self._vc_name, self._host)
 
     def _get_metric_config(self, config):
         metric_config = {}
@@ -85,8 +86,8 @@ class Environment(object):
         dimensions = {}
         dimensions.update(inv_obj.sf_metadata_dims)
         if metric_value.id.instance != '':
-            instance = str(metric_value.id.instance).replace(':', '_').\
-                replace('.','_')
+            instance = str(metric_value.id.instance).replace(':', '_'). \
+                replace('.', '_')
             dimensions['instance'] = instance
         return dimensions
 
@@ -112,7 +113,7 @@ class Environment(object):
         start = 0
         delta = 100
         end = delta if dp_count > delta else dp_count
-        for x in range(0, int(dp_count/delta)+1):
+        for x in range(0, int(dp_count / delta) + 1):
             gauges = []
             counters = []
             for dp in dps[start: end]:
@@ -148,19 +149,21 @@ class Environment(object):
         inv_objs = self._inventory_mgr.current_inventory()
         monitored_metrics = self._metric_mgr.get_monitored_metrics()
         perf_manager = self._si.RetrieveServiceContent().perfManager
-        for inv_obj in itertools.chain(*inv_objs.values()):
-            inv_obj_metrics = inv_obj.metric_id_map
-            desired_keys = (inv_obj_metrics.keys() & monitored_metrics.keys())
-            metric_id_objs = [inv_obj_metrics[key] for key in desired_keys]
-            query_spec = vim.PerformanceManager.QuerySpec(
-                entity=inv_obj.mor, metricId=metric_id_objs,
-                intervalId=inv_obj.INSTANT_INTERVAL,
-                maxSample=1, format='normal'
-            )
-            results = perf_manager.QueryPerf(querySpec=[query_spec])
-            dps = self._parse_query(inv_obj, results, monitored_metrics)
-            payload = self._build_payload(dps)
-            self._dispatch_metrics(payload)
+        for mor in inv_objs.keys():
+            for inv_obj in inv_objs[mor]:
+                inv_obj_metrics = inv_obj.metric_id_map
+                desired_keys = list(set(inv_obj_metrics.keys()) & set(monitored_metrics[mor].keys()))
+                if not len(desired_keys) == 0:
+                    metric_id_objs = [inv_obj_metrics[key] for key in desired_keys]
+                    query_spec = vim.PerformanceManager.QuerySpec(
+                        entity=inv_obj.mor, metricId=metric_id_objs,
+                        intervalId=inv_obj.INSTANT_INTERVAL,
+                        maxSample=1, format='normal'
+                    )
+                    results = perf_manager.QueryPerf(querySpec=[query_spec])
+                    dps = self._parse_query(inv_obj, results, monitored_metrics[mor])
+                    payload = self._build_payload(dps)
+                    self._dispatch_metrics(payload)
 
     def send_metadata_metrics(self):
         inv_objs = self._inventory_mgr.current_inventory()
@@ -188,5 +191,3 @@ class Environment(object):
             self.value = value
             self.dimensions = dimensions
             self.timestamp = timestamp
-
-
