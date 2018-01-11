@@ -1,6 +1,10 @@
+"""
+Module containing classes for getting the inventory for a vCenter Server,
+caching relevant information, and periodically updating it.
+"""
+
 import logging
 import threading
-
 import time
 from pyVmomi import vim
 
@@ -20,6 +24,11 @@ class InventoryManager(threading.Thread):
         self._cache = self._new_cache()
 
     def _new_cache(self):
+        """
+        Creates a new, empty cache that will be used to store inventory objects.
+        :return: dict
+
+        """
         cache = {
             'datacenter': [],
             'cluster': [],
@@ -29,6 +38,15 @@ class InventoryManager(threading.Thread):
         return cache
 
     def _sync(self, mor, cache, meta_dims=None):
+        """
+        Recursively walk the tree of inventory objects and update the cache
+        as we find elements we're interested in monitoring.
+
+        :param mor: Managed Object Reference
+        :param cache:
+        :param meta_dims: Meta dimensions of mor
+        :return: null
+        """
         if isinstance(mor, vim.Folder):
             for item in mor.childEntity:
                 self._sync(item, cache, meta_dims)
@@ -72,9 +90,20 @@ class InventoryManager(threading.Thread):
         self._has_inventory.set()
 
     def block_until_inventory(self, timeout=None):
+        """
+        Wait until the inventory cache is populated. Useful for right after the thread starts.
+        :param timeout: Maximum time to wait before raising an exception
+        :return: Boolean
+        """
         return self._has_inventory.wait(timeout=timeout)
 
     def current_inventory(self):
+        """
+        Thread-safe way to get the current inventory cache.
+        Return a map of {str: list of InventoryObject}
+                The mapping of inventory type (datacenter, host, cluster, vm) to inventory objects of that type.
+        :return: dict
+        """
         with self.update_lock:
             return self._cache
 
@@ -107,6 +136,7 @@ class InventoryObject(object):
         self.mor = mor
         self._perf_mgr = perf_mgr
         self.vc_name = vc_name
+        # Mapping of integer counter key to its corresponding MetricId object
         self.metric_id_map = self._mor_metrics()
         self.dimensions = self._get_dimensions()
         self.properties = self._get_properties()
@@ -116,6 +146,12 @@ class InventoryObject(object):
         self.mor_dimensions = self._get_mor_dimensions()
 
     def _mor_metrics(self):
+        """
+        Determines the metrics being published by a given managed object.
+
+        :return: dict
+
+        """
         metrics = self._perf_mgr.QueryAvailablePerfMetric(self.mor, None, None, self.INSTANT_INTERVAL)
         metric_map = {}
         for metric_id_obj in metrics:

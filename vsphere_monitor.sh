@@ -40,7 +40,7 @@ function start()
         kill -SIGUSR1 $pid
     fi
     echo "Starting the process"
-    python3 "$DIR/vsphere.py" &
+    python "$DIR/vsphere.py" &
 }
 
 function stop()

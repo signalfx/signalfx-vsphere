@@ -14,6 +14,12 @@ envs = []
 
 
 def _handle_exit_signal(signum, stack):
+    """
+    Custom Signal handler to handle exit signal.
+    :param signum: Exit Signal
+    :param stack:
+    :return: null
+    """
     if signum == signal.SIGUSR1:
         logger.info("Signal received. Exiting gracefully")
         _stop_envs(envs)
@@ -21,12 +27,23 @@ def _handle_exit_signal(signum, stack):
 
 
 def _stop_envs(envs):
+    """
+    Stops all the Environments.
+    :param envs: List of environments.
+    :return: null
+
+    """
     if len(envs) > 0:
         for env in envs:
             env.stop_managers()
 
 
 def _get_config():
+    """
+    Open config file and get configuration for different environments.
+    :return: List of plugin configs.
+
+    """
     logger.info("Reading Config")
     plugin_config_list = []
     f = open('config')
@@ -63,6 +80,13 @@ def _get_config():
 
 
 def _run(config_list):
+    """
+    Creates environments(for each vCenter) from config list and runs the metric collection for all envs
+    until exit signal is received.
+    :param config_list:  List of plugin configuration for different environments.
+    :return: null
+
+    """
     signal.signal(signal.SIGUSR1, _handle_exit_signal)
     if len(config_list) == 0:
         logger.warning("No config to handle. Shutting down the client.")
@@ -83,6 +107,7 @@ def _run(config_list):
             start_time = datetime.datetime.now()
             for env in envs:
                 try:
+                    """ Executes reading and sending of metrics."""
                     env.read_metric_values()
                     env.send_metadata_metrics()
                     logger.info("Sent metrics for env : {0}".format(env.get_instance_id()))

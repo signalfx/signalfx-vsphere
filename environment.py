@@ -2,7 +2,6 @@
 
 import logging
 import ssl
-
 import itertools
 import signalfx
 import time
@@ -17,6 +16,11 @@ import metric_metadata
 class Environment(object):
 
     def __init__(self, config):
+        """
+        Reads from configuration, connects to vCenter and starts inventory manager and metric manager threads.
+        :param config: Configuration for the environment.
+
+        """
         self._host = config['host']
         self._username = config['username']
         self._password = config['password']
@@ -41,6 +45,11 @@ class Environment(object):
         self._wait_for_sync()
 
     def _wait_for_sync(self):
+        """
+        Waits until the inventory and available metrics are synced.
+        :return: null
+
+        """
         success = self._inventory_mgr.block_until_inventory(timeout=constants.INVENTORY_SYNC_TIMEOUT)
         if not success:
             raise RuntimeError("Did not sync inventory within {0} seconds".format(constants.INVENTORY_SYNC_TIMEOUT))
@@ -49,6 +58,11 @@ class Environment(object):
             raise RuntimeError("Did not sync metrics within {0} seconds".format(constants.DEFAULT_METRIC_SYNC_INTERVAL))
 
     def _connect(self):
+        """
+        Connect to the vCenter.
+        :return: null
+
+        """
         context = None
         if hasattr(ssl, 'SSLContext'):
             context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
@@ -65,9 +79,20 @@ class Environment(object):
             self._si = None
 
     def get_instance_id(self):
+        """
+        Returns the instance id for logging.
+        :return: string
+
+        """
         return "{0}-{1}".format(self._vc_name, self._host)
 
     def _get_metric_config(self, config):
+        """
+        Gets the required metric preferences from Configuration.
+        :param config:
+        :return: dict
+
+        """
         metric_config = {}
         if 'enhanced_metrics' in config:
             metric_config['enhanced_metrics'] = True
@@ -78,11 +103,23 @@ class Environment(object):
         return metric_config
 
     def _create_signalfx_ingest(self):
+        """
+        Creates and returns the SignalFX ingest client.
+        :return: Ingest Client
+
+        """
         client = signalfx.SignalFx()
         ingest = client.ingest(constants.SIGNALFX_INGEST_TOKEN, timeout=5)
         return ingest
 
     def _get_dimensions(self, inv_obj, metric_value):
+        """
+        Returns the dimensions of inventory object.
+        :param inv_obj: Inventory Object. eg: host, vm etc
+        :param metric_value: Value of inventory object metric.
+        :return: dict
+
+        """
         dimensions = {}
         dimensions.update(inv_obj.sf_metadata_dims)
         if metric_value.id.instance != '':
@@ -92,6 +129,14 @@ class Environment(object):
         return dimensions
 
     def _parse_query(self, inv_obj, query_results, monitored_metrics):
+        """
+        Parses the query results, builds and returns datapoints.
+        :param inv_obj: Inventory Object
+        :param query_results: Query results from QueryPerf().
+        :param monitored_metrics: Metrics which will be monitored by the application for inventory object.
+        :return: list
+
+        """
         result = query_results[0]
         timestamp = int(time.time()) * 1000
         datapoints = []
@@ -108,6 +153,12 @@ class Environment(object):
         return datapoints
 
     def _build_payload(self, dps):
+        """
+        Builds a ingest client payload from the datapoints.
+        :param dps: datapoints
+        :return: dict
+
+        """
         dp_count = len(dps)
         payload = []
         start = 0
@@ -139,6 +190,12 @@ class Environment(object):
         return payload
 
     def _dispatch_metrics(self, payload):
+        """
+        Dispatches metrics to signalfx client.
+        :param payload: Ingest client payload(contains the datapoints)
+        :return: null
+
+        """
         try:
             for item in payload:
                 self._ingest.send(gauges=item['gauges'], counters=item['counters'])
@@ -146,6 +203,11 @@ class Environment(object):
             self._logger.error("Exception while sending payload to ingest : {0}".format(e))
 
     def read_metric_values(self):
+        """
+        Collects the required metrics for all inventory objects from vCenter and dispatches them to Ingest client.
+        :return: null
+
+        """
         inv_objs = self._inventory_mgr.current_inventory()
         monitored_metrics = self._metric_mgr.get_monitored_metrics()
         perf_manager = self._si.RetrieveServiceContent().perfManager
@@ -166,6 +228,12 @@ class Environment(object):
                     self._dispatch_metrics(payload)
 
     def send_metadata_metrics(self):
+        """
+        Sends a dummy metric to Ingest Client for all inventory objects with all the metadata(dimensions)
+        so as to keep track of the current architecture of the vCenter
+        :return: null
+
+        """
         inv_objs = self._inventory_mgr.current_inventory()
         dps = []
         for inv_obj in itertools.chain(*inv_objs.values()):
@@ -179,12 +247,22 @@ class Environment(object):
         self._dispatch_metrics(payload)
 
     def stop_managers(self):
+        """
+        Stops inventory manager and metric manager threads.
+        :return: null
+
+        """
         self._inventory_mgr.stop()
         self._metric_mgr.stop()
         self._inventory_mgr.join(timeout=constants.DEFAULT_TIMEOUT)
         self._metric_mgr.join(timeout=constants.DEFAULT_TIMEOUT)
 
     class Datapoint(object):
+        """
+
+        Plain Object to hold metric as a datapoint.
+
+        """
         def __init__(self, metric_name, metric_type, value, dimensions, timestamp):
             self.metric_name = metric_name
             self.metric_type = metric_type

@@ -1,8 +1,11 @@
+"""
+Module containing a class for periodically syncing vCenter's latest metric
+metadata with a local cache.
+"""
+
 import logging
 import threading
-
 import time
-
 import vsphere_metrics
 
 
@@ -22,6 +25,11 @@ class MetricManager(threading.Thread):
         self._monitored_metrics = {}
 
     def _sync_metrics(self):
+        """
+        Syncs all the available required metrics.
+        :return: null
+
+        """
         monitored_metrics = {}
         available_metrics = {}
         for counter in self._perf_manager.perfCounter:
@@ -46,12 +54,25 @@ class MetricManager(threading.Thread):
         return metric
 
     def _determine_metric_type(self, perf_counter):
+        """
+        Determines the metric type (gauge, counter, or cumulative counter) of the passed-in
+         performance counter object.
+        :param perf_counter: Performance counter
+        :return: string
+
+        """
         if perf_counter.statsType in ['absolute', 'rate']:
             return "gauge"
         else:
             return "gauge"
 
     def _determine_units(self, perf_counter):
+        """
+        Determines the units of the metric
+        :param perf_counter: Performance Counter
+        :return: string
+
+        """
         return perf_counter.unitInfo.key
 
     def _format_metric_name(self, perf_counter):
@@ -60,18 +81,35 @@ class MetricManager(threading.Thread):
         return "{0}.{1}".format(group, name)
 
     def _format_metric_full_name(self, perf_counter):
+        """
+        Determines the metric name to send to SignalFx based on the performance counter's group and name keys.
+        :param perf_counter: Performance Counter
+        :return: string
+
+        """
         group = perf_counter.groupInfo.key
         name = perf_counter.nameInfo.key
         rollup_type = perf_counter.rollupType
         return "{0}.{1}.{2}".format(group, name, rollup_type)
 
     def _is_metric_allowed(self, metric_full_name):
+        """
+        Determines if a metric should be reported based on configuration and available metrics.
+        :param metric_full_name: Fully qualified metric name
+        :return: Boolean
+        """
         if metric_full_name not in self._required_metrics:
             return False
         else:
             return True
 
     def block_until_has_metrics(self, timeout=None):
+        """
+        Wait until the metric metadata cache is populated. Useful for right after the thread starts.
+        :param timeout: The maximum time to wait before returning an exception
+        :return: Boolean
+
+        """
         return self._has_metrics.wait(timeout=timeout)
 
     def get_monitored_metrics(self):
