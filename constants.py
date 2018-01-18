@@ -14,8 +14,6 @@ METADATA_METRIC_NAME = "signalfx_vsphere_metadata"
 
 METRIC_SOURCE = "vsphere"
 
-SIGNALFX_INGEST_TOKEN = 'rb2yT1_ej4yXYkIdSQzp_w'
-
 LOG_FILE = '/var/log/vsphere.log'
 
 CONFIG_FILE = '/etc/vsphere/config.yaml'
