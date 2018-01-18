@@ -3,6 +3,7 @@ config:
     username: administrator@vsphere.local
     password: Abcd123$
     Name: VCenter4
+    IngestToken: rb2yT1_ej4yXYkIdSQzp_w
     MORSyncInterval: 300
     MetricSyncInterval: 300
     IncludeMetrics:

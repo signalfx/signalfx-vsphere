@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 
-DIR=`dirname $0`
+DIR="/usr/share/vsphere"
 
 function usage()
 {
     echo "Shell script to handle vsphere signalfx client"
     echo ""
-    echo "./test.sh"
+    echo "./vsphere_monitor.sh"
     echo "\t-h --help"
     echo "\t--start"
     echo "\t--stop"
+    echo "\t--restart"
+    echo "\t--status"
     echo ""
 }
 
@@ -36,11 +38,12 @@ function start()
     pid=$(get_pid)
     if [ ! -z "$pid" ]
     then
-        echo "Process already running. Will restart the process"
-        kill -SIGUSR1 $pid
+        echo "Service already running" >&2
+        return 1
     fi
-    echo "Starting the process"
-    python "$DIR/vsphere.py" &
+    echo "Starting the service" >&2
+    python3 "$DIR/vsphere.py" &
+    echo "Service started" >&2
 }
 
 function stop()
@@ -48,10 +51,11 @@ function stop()
     pid=$(get_pid)
     if [ ! -z "$pid" ]
     then
-        echo "killing the process"
+        echo "Stopping the service" >&2
         kill -SIGUSR1 $pid
+        echo "Service stopped" >&2
     else
-        echo "No process is running"
+        echo "Service not running" >&2
     fi
 }
 
@@ -62,13 +66,17 @@ while [ "$1" != "" ]; do
             usage
             exit
             ;;
-        --start)
+        start)
             start
             ;;
-        --stop)
+        stop)
             stop
             ;;
-        --status)
+        restart)
+            stop
+            start
+            ;;
+        stats)
             status
             ;;
         *)

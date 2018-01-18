@@ -46,12 +46,12 @@ def _get_config():
     """
     logger.info("Reading Config")
     plugin_config_list = []
-    f = open('config')
+    f = open(constants.CONFIG_FILE)
     data_map = yaml.load(f)
     for conf in data_map['config']:
         try:
             plugin_config = {}
-            required_keys = ('host', 'username', 'password', 'Name')
+            required_keys = ('host', 'username', 'password', 'Name', 'IngestToken')
             for key in required_keys:
                 if key not in conf:
                     logger.error('Missing required config settings : {0}'.format(key))
@@ -60,6 +60,7 @@ def _get_config():
             plugin_config['username'] = conf['username']
             plugin_config['password'] = conf['password']
             plugin_config['Name'] = conf['Name']
+            plugin_config['IngestToken'] = conf['IngestToken']
             if 'MORSyncInterval' in conf:
                 plugin_config['MORSyncInterval'] = conf['MORSyncInterval']
             if 'MetricSyncInterval' in conf:

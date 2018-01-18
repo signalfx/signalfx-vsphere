@@ -25,6 +25,7 @@ class Environment(object):
         self._username = config['username']
         self._password = config['password']
         self._vc_name = config['Name']
+        self._ingest_token = config['IngestToken']
         self._logger = logging.getLogger(self.get_instance_id())
         self._si = None
         self._connect()
@@ -109,7 +110,7 @@ class Environment(object):
 
         """
         client = signalfx.SignalFx()
-        ingest = client.ingest(constants.SIGNALFX_INGEST_TOKEN, timeout=5)
+        ingest = client.ingest(self._ingest_token, timeout=5)
         return ingest
 
     def _get_dimensions(self, inv_obj, metric_value):
