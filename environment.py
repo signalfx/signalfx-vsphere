@@ -51,11 +51,11 @@ class Environment(object):
         :return: null
 
         """
-        success = self._inventory_mgr.block_until_inventory(timeout=constants.INVENTORY_SYNC_TIMEOUT)
-        if not success:
+
+        if not self._inventory_mgr.block_until_inventory(timeout=constants.INVENTORY_SYNC_TIMEOUT):
             raise RuntimeError("Did not sync inventory within {0} seconds".format(constants.INVENTORY_SYNC_TIMEOUT))
-        success = self._metric_mgr.block_until_has_metrics(timeout=constants.DEFAULT_METRIC_SYNC_INTERVAL)
-        if not success:
+
+        if not self._metric_mgr.block_until_has_metrics(timeout=constants.DEFAULT_METRIC_SYNC_INTERVAL):
             raise RuntimeError("Did not sync metrics within {0} seconds".format(constants.DEFAULT_METRIC_SYNC_INTERVAL))
 
     def _connect(self):
@@ -94,13 +94,9 @@ class Environment(object):
         :return: dict
 
         """
-        metric_config = {}
-        if 'enhanced_metrics' in config:
-            metric_config['enhanced_metrics'] = True
-        if 'include_metrics' in config:
-            metric_config['include_metrics'] = config['include_metrics']
-        if 'exclude_metrics' in config:
-            metric_config['exclude_metrics'] = config['exclude_metrics']
+        metric_config = dict()
+        metric_config['include_metrics'] = config.get('include_metrics', {})
+        metric_config['exclude_metrics'] = config.get('exclude_metrics', {})
         return metric_config
 
     def _create_signalfx_ingest(self):
@@ -197,11 +193,11 @@ class Environment(object):
         :return: null
 
         """
-        try:
-            for item in payload:
+        for item in payload:
+            try:
                 self._ingest.send(gauges=item['gauges'], counters=item['counters'])
-        except Exception as e:
-            self._logger.error("Exception while sending payload to ingest : {0}".format(e))
+            except Exception as e:
+                self._logger.error("Exception while sending payload to ingest : {0}".format(e))
 
     def read_metric_values(self):
         """

@@ -33,9 +33,8 @@ def _stop_envs(envs):
     :return: null
 
     """
-    if len(envs) > 0:
-        for env in envs:
-            env.stop_managers()
+    for env in envs:
+        env.stop_managers()
 
 
 def _get_config():
