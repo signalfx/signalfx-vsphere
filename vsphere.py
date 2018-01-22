@@ -9,6 +9,7 @@ import yaml
 import datetime
 
 
+logging.setLoggerClass(utils.VSphereLogger)
 logger = logging.getLogger('VSphere')
 envs = []
 

@@ -2,7 +2,6 @@
 
 import logging
 import ssl
-import itertools
 import signalfx
 import time
 from pyVim.connect import SmartConnect

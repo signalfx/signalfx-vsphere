@@ -148,6 +148,6 @@ class MetricInfo(object):
 
     def __str__(self):
         return ("MetricInfo(name={0},level={1},metric_type={2},units={3}"
-            .format(self.name, self.level, self.metric_type, self.units))
+                .format(self.name, self.level, self.metric_type, self.units))
 
     __repr__ = __str__
