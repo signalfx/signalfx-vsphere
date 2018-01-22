@@ -10,7 +10,7 @@ DEFAULT_COLLECTION_INTERVAL = 20  # 20 seconds
 
 INVENTORY_SYNC_TIMEOUT = 60  # 1 minute
 
-METADATA_METRIC_NAME = "signalfx_vsphere_metadata"
+DEFAULT_INGEST_ENDPOINT = 'https://ingest.signalfx.com'
 
 METRIC_SOURCE = "vsphere"
 

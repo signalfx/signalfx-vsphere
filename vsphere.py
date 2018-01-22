@@ -60,14 +60,13 @@ def _get_config():
             plugin_config['password'] = conf['password']
             plugin_config['Name'] = conf['Name']
             plugin_config['IngestToken'] = conf['IngestToken']
+            plugin_config['IngestEndpoint'] = conf.get('IngestEndpoint', constants.DEFAULT_INGEST_ENDPOINT)
             if 'MORSyncInterval' in conf:
                 plugin_config['MORSyncInterval'] = conf['MORSyncInterval']
             if 'MetricSyncInterval' in conf:
                 plugin_config['MetricSyncInterval'] = conf['MetricSyncInterval']
             if 'verbosity_level' in conf:
                 plugin_config['verbosity_level'] = conf['verbosity_level']
-            if 'EnhancedMetrics' in conf and conf['EnhancedMetrics'] == 'True':
-                plugin_config['enhanced_metrics'] = True
             if 'IncludeMetrics' in conf:
                 plugin_config['include_metrics'] = conf['IncludeMetrics']
             if 'ExcludeMetrics' in conf:
@@ -109,7 +108,6 @@ def _run(config_list):
                 try:
                     """ Executes reading and sending of metrics."""
                     env.read_metric_values()
-                    env.send_metadata_metrics()
                     logger.info("Sent metrics for env : {0}".format(env.get_instance_id()))
                 except Exception as e:
                     logger.error("Failed to send metrics for env {0} : {1}".format(env.get_instance_id(), e))

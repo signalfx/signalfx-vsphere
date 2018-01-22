@@ -26,6 +26,7 @@ class Environment(object):
         self._password = config['password']
         self._vc_name = config['Name']
         self._ingest_token = config['IngestToken']
+        self._ingest_endpoint = config['IngestEndpoint']
         self._logger = logging.getLogger(self.get_instance_id())
         self._si = None
         self._connect()
@@ -69,14 +70,10 @@ class Environment(object):
             context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
             context.verify_mode = ssl.CERT_NONE
         try:
-            if context:
-                self._si = SmartConnect(host=self._host, user=self._username,
-                                        pwd=self._password, sslContext=context)
-            else:
-                self._si = SmartConnect(host=self._host, user=self._username,
-                                        pwd=self._password)
-        except Exception:
-            self._logger.error("Unable to connect to host {0}".format(self._host))
+            self._si = SmartConnect(host=self._host, user=self._username,
+                                    pwd=self._password, sslContext=context)
+        except Exception as e:
+            self._logger.error("Unable to connect to host {0} : {1}".format(self._host, e))
             self._si = None
 
     def get_instance_id(self):
@@ -106,7 +103,7 @@ class Environment(object):
 
         """
         client = signalfx.SignalFx()
-        ingest = client.ingest(self._ingest_token, timeout=5)
+        ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint, timeout=5)
         return ingest
 
     def _get_dimensions(self, inv_obj, metric_value):
@@ -223,25 +220,6 @@ class Environment(object):
                     dps = self._parse_query(inv_obj, results, monitored_metrics[mor])
                     payload = self._build_payload(dps)
                     self._dispatch_metrics(payload)
-
-    def send_metadata_metrics(self):
-        """
-        Sends a dummy metric to Ingest Client for all inventory objects with all the metadata(dimensions)
-        so as to keep track of the current architecture of the vCenter
-        :return: null
-
-        """
-        inv_objs = self._inventory_mgr.current_inventory()
-        dps = []
-        for inv_obj in itertools.chain(*inv_objs.values()):
-            metric_name = constants.METADATA_METRIC_NAME
-            metric_type = "gauge"
-            value = 1
-            timestamp = time.time() * 1000
-            dimensions = inv_obj.sf_metadata_dims
-            dps.append(self.Datapoint(metric_name, metric_type, value, dimensions, timestamp))
-        payload = self._build_payload(dps)
-        self._dispatch_metrics(payload)
 
     def stop_managers(self):
         """

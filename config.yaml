@@ -4,6 +4,7 @@ config:
     password: Abcd123$
     Name: VCenter4
     IngestToken: **************
+    IngestEndpoint: 'https://ingest.signalfx.com'
     MORSyncInterval: 300
     MetricSyncInterval: 300
     IncludeMetrics:
