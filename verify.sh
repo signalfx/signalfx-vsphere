@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 flake8 --max-line-length=120 --exclude=tests/
 
 if [ "$?" -ne 0 ]; then
