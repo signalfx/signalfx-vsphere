@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+DIR="/usr/share/vsphere"
+
+function usage()
+{
+    echo "Shell script to handle vsphere signalfx client"
+    echo ""
+    echo "./vsphere_monitor.sh"
+    echo "\t-h --help"
+    echo "\t--start"
+    echo "\t--stop"
+    echo "\t--restart"
+    echo "\t--status"
+    echo ""
+}
+
+function get_pid()
+{
+    pid=$(ps -ef|grep "vsphere.py"|grep -v "grep"|awk '{print $2}')
+    echo $pid
+    return $pid
+}
+
+function status()
+{
+    pid=$(get_pid)
+    if [ ! -z "$pid" ]
+    then
+        echo "Process running. PID : $pid"
+    else
+        echo "Process not running."
+    fi
+}
+
+function start()
+{
+    pid=$(get_pid)
+    if [ ! -z "$pid" ]
+    then
+        echo "Service already running" >&2
+        return 1
+    fi
+    echo "Starting the service" >&2
+    python3 "$DIR/vsphere.py" &
+    echo "Service started" >&2
+}
+
+function stop()
+{
+    pid=$(get_pid)
+    if [ ! -z "$pid" ]
+    then
+        echo "Stopping the service" >&2
+        kill -SIGUSR1 $pid
+        echo "Service stopped" >&2
+    else
+        echo "Service not running" >&2
+    fi
+}
+
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    case $PARAM in
+        -h | --help)
+            usage
+            exit
+            ;;
+        start)
+            start
+            ;;
+        stop)
+            stop
+            ;;
+        restart)
+            stop
+            start
+            ;;
+        stats)
+            status
+            ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            usage
+            exit 1
+            ;;
+    esac
+    shift
+done
