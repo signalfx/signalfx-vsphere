@@ -1,4 +1,4 @@
-# SignalFX Vsphere integration
+# SignalFx vSphere integration
 SignalFx Integration for VMware vSphere
 
 ## Installation
@@ -10,9 +10,9 @@ SignalFx Integration for VMware vSphere
 * Place the config.yaml in ```/etc/vsphere```
 * Start the application with following command ```$ ./vsphere-monitor start```
 
-### Using OVF
-* Download the SignalFx-Vsphere monitoring application <a target="_blank" href="https://github.com/signalfx/signalfx-vsphere/releases/tag/v1.0.0/"> ovf template</a>.
-* Deploy the ovf template at place where VCenter(to be monitored) is accessible.
+### Using SignalFx's OVF
+* Download the SignalFx-vSphere monitoring application <a target="_blank" href="https://github.com/signalfx/signalfx-vsphere/releases/tag/v1.0.0/"> OVF Template</a>.
+* Deploy the OVF Template to a host that can access the vCenter Server that you want to monitor.
 * Login to the virtual machine . User : ```signalfx``` Password : ```signalfx```
 * Modify the sample configuration file located at ```/etc/vsphere/config.yaml``` as described in [Configuration](#configuration), below.
 * Restart the service by  ```$ service vsphere-monitor restart```
@@ -21,7 +21,7 @@ SignalFx Integration for VMware vSphere
 ## Requirements
 
 * Python 3.6 or later
-* VSphere 6.5 or later
+* vSphere 6.5 or later
 
 
 ## Configuration
@@ -42,7 +42,7 @@ Optional configurations keys include:
 * ExcludeMetric - Metrics emitted from different inventory objects can be excluded individually.
 
 
-Note that multiple vCenter servers can be configured in the same file.
+NOTE: Multiple vCenter servers can be configured for monitoring within the same file.
 
 ```
 config:
