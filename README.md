@@ -11,7 +11,8 @@ SignalFx Integration for VMware vSphere
 * Start the application with following command ```$ ./vsphere-monitor start```
 
 ### Using SignalFx's OVF
-* Download the SignalFx-vSphere monitoring application <a target="_blank" href="https://github.com/signalfx/signalfx-vsphere/releases/tag/v1.0.0/"> OVF Template</a>.
+* Download the latest SignalFx-vSphere monitoring application <a target="_blank" href="https://github.com/signalfx/signalfx-vsphere/releases"> OVF Template</a> zip file.
+* Unzip the OVF Template zip file
 * Deploy the OVF Template to a host that can access the vCenter Server that you want to monitor.
 * Login to the virtual machine . User : ```signalfx``` Password : ```signalfx```
 * Modify the sample configuration file located at ```/etc/vsphere/config.yaml``` as described in [Configuration](#configuration), below.
