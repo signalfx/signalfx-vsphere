@@ -12,6 +12,8 @@ INVENTORY_SYNC_TIMEOUT = 60  # 1 minute
 
 DEFAULT_INGEST_ENDPOINT = 'https://ingest.signalfx.com'
 
+DEFAULT_INGEST_TIMEOUT = 10
+
 METRIC_SOURCE = "vsphere"
 
 LOG_FILE = '/var/log/vsphere.log'
