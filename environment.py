@@ -102,7 +102,8 @@ class Environment(object):
 
         """
         client = signalfx.SignalFx()
-        ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint, timeout=5)
+        ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint,
+                               timeout=constants.DEFAULT_INGEST_TIMEOUT)
         return ingest
 
     def _get_dimensions(self, inv_obj, metric_value):
