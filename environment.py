@@ -3,6 +3,7 @@
 import logging
 import ssl
 import signalfx
+import api_client
 import time
 from pyVim.connect import SmartConnect
 from pyVmomi import vim
@@ -32,6 +33,7 @@ class Environment(object):
         if self._si is None:
             raise ValueError("Unable to connect to host")
         self._ingest = self._create_signalfx_ingest()
+        self._ingest_client = self._create_signalfx_ingest_client()
         if 'MORSyncInterval' not in config:
             config['MORSyncInterval'] = constants.DEFAULT_MOR_SYNC_INTERVAL
         self._inventory_mgr = inventory.InventoryManager(self._si, config['MORSyncInterval'],
@@ -105,6 +107,10 @@ class Environment(object):
         ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint,
                                timeout=constants.DEFAULT_INGEST_TIMEOUT)
         return ingest
+
+    def _create_signalfx_ingest_client(self):
+        ingest_client = api_client.SignalFxIngestClient(self._ingest_token, endpoint=self._ingest_endpoint)
+        return ingest_client
 
     def _get_dimensions(self, inv_obj, metric_value):
         """
@@ -192,7 +198,7 @@ class Environment(object):
         """
         for item in payload:
             try:
-                self._ingest.send(gauges=item['gauges'], counters=item['counters'])
+                self._ingest_client.send(gauges=item['gauges'], counters=item['counters'])
             except Exception as e:
                 self._logger.error("Exception while sending payload to ingest : {0}".format(e))
 
