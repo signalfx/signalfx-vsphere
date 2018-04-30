@@ -32,6 +32,9 @@ class Environment(object):
         if self._si is None:
             raise ValueError("Unable to connect to host")
         self._ingest = self._create_signalfx_ingest()
+        self._additional_dims = None
+        if 'dimensions' in config:
+            self._set_additional_dims(config['dimensions'])
         if 'MORSyncInterval' not in config:
             config['MORSyncInterval'] = constants.DEFAULT_MOR_SYNC_INTERVAL
         self._inventory_mgr = inventory.InventoryManager(self._si, config['MORSyncInterval'],
@@ -106,6 +109,18 @@ class Environment(object):
                                timeout=constants.DEFAULT_INGEST_TIMEOUT)
         return ingest
 
+    def _set_additional_dims(self, dimensions):
+        """
+        Sets user defined additional dimensions.
+        :param dimensions:
+        :return: None
+
+        """
+        additional_dims = {}
+        for dimension in dimensions:
+            additional_dims[dimension] = dimensions[dimension]
+        self._additional_dims = additional_dims
+
     def _get_dimensions(self, inv_obj, metric_value):
         """
         Returns the dimensions of inventory object.
@@ -115,6 +130,8 @@ class Environment(object):
 
         """
         dimensions = {}
+        if self._additional_dims is not None:
+            dimensions.update(self._additional_dims)
         dimensions.update(inv_obj.sf_metadata_dims)
         if metric_value.id.instance != '':
             instance = str(metric_value.id.instance).replace(':', '_'). \

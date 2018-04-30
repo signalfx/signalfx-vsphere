@@ -12,3 +12,6 @@ config:
         - random.test.metric
       cluster:
         - mem.usage.average
+    Dimensions:
+      test_name: "Test name"
+      test_dim: "Test Dim"
