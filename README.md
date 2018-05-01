@@ -34,14 +34,14 @@ The following are required configuration keys:
 * Name - Required. Name of the vCenter Server.
 * IngestToken -  Required. SignalFx Ingest Token required to send metrics to ingest server.
 
-Optional configurations keys include:
+Optional configuration keys include:
 
 * MORSyncInterval - Time interval at which the vCenter inventory should be synced.
 * MetricSyncInterval - Time interval at which the available metrics should be synced.
 * IngestEndpoint - The url of ingest endpoint to send to metrics.
 * IncludeMetric - Metrics required for different inventory objects can be included individually. Currently metrics can be added for datacenter, cluster, host and vm.
 * ExcludeMetric - Metrics emitted from different inventory objects can be excluded individually.
-* Dimensions - Additional dimensions specific to environment.
+* Dimensions - Additional dimensions to be added to each datapoint.
 
 NOTE: Multiple vCenter servers can be configured for monitoring within the same file.
 
