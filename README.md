@@ -61,8 +61,8 @@ config:
       cluster:
         - mem.usage.average
     Dimensions:
-      test_name: "Test name"
-      test_dim: "Test Dim"
+      dimension_key: "dimension_value"
+      dimension_key1: "dimension_value1"
 
   - host: 192.168.1.20
     username: administrator@vsphere.local
