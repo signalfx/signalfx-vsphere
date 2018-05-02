@@ -32,9 +32,7 @@ class Environment(object):
         if self._si is None:
             raise ValueError("Unable to connect to host")
         self._ingest = self._create_signalfx_ingest()
-        self._additional_dims = None
-        if 'dimensions' in config:
-            self._set_additional_dims(config['dimensions'])
+        self._additional_dims = config.get('dimensions', None)
         if 'MORSyncInterval' not in config:
             config['MORSyncInterval'] = constants.DEFAULT_MOR_SYNC_INTERVAL
         self._inventory_mgr = inventory.InventoryManager(self._si, config['MORSyncInterval'],
@@ -108,18 +106,6 @@ class Environment(object):
         ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint,
                                timeout=constants.DEFAULT_INGEST_TIMEOUT)
         return ingest
-
-    def _set_additional_dims(self, dimensions):
-        """
-        Sets user defined additional dimensions.
-        :param dimensions:
-        :return: None
-
-        """
-        additional_dims = {}
-        for dimension in dimensions:
-            additional_dims[dimension] = dimensions[dimension]
-        self._additional_dims = additional_dims
 
     def _get_dimensions(self, inv_obj, metric_value):
         """
