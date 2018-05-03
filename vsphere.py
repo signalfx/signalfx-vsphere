@@ -72,6 +72,8 @@ def _get_config():
                 plugin_config['include_metrics'] = conf['IncludeMetrics']
             if 'ExcludeMetrics' in conf:
                 plugin_config['exclude_metrics'] = conf['ExcludeMetrics']
+            if 'Dimensions' in conf:
+                plugin_config['dimensions'] = conf['Dimensions']
             plugin_config_list.append(plugin_config)
         except ValueError as e:
             logging.error(e)

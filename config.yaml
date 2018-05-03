@@ -12,3 +12,6 @@ config:
         - random.test.metric
       cluster:
         - mem.usage.average
+    Dimensions:
+      dimension_key: "dimension_value"
+      dimension_key1: "dimension_value1"
