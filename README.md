@@ -72,7 +72,7 @@ config:
     IngestEndpoint: 'https://ingest.signalfx.com'
     MORSyncInterval: 20
     MetricSyncInterval: 60
-    EncludeMetrics:
+    IncludeMetrics:
       host:
         - disk.usage.average
 ```
