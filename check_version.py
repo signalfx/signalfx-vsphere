@@ -13,9 +13,9 @@ REFERENCE_ARTICLE = "https://kb.vmware.com/s/article/2107096"
 class BColors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
+    OKGREEN = '\033[0;32m'
+    WARNING = '\033[1;33m'
+    FAIL = '\033[0;31m'
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
@@ -26,11 +26,11 @@ class BColors:
 def is_connected(hostname):
     try:
         host = socket.gethostbyname(hostname)
-        s = socket.create_connection((host, 80), 2)
+        socket.create_connection((host, 80), 2)
         print("VM is able to connect to {0}{1}{2}\t{3}{4}".format(BColors.OKGREEN, BColors.BOLD, hostname, BColors.TICK,
                                                                   BColors.ENDC))
         return True
-    except Exception as e:
+    except Exception:
         print("VM is unable to connect to {0}{1}{2}\t{3}{4}".format(BColors.FAIL, BColors.BOLD, hostname, BColors.CROSS,
                                                                     BColors.ENDC))
         print("{0}Please check the network connectivity of the VM{1}".format(BColors.WARNING, BColors.ENDC))
@@ -50,7 +50,7 @@ def connect_to_vcenter(host, username, password):
                                                                                               BColors.BOLD, host,
                                                                                               BColors.TICK,
                                                                                               BColors.ENDC))
-    except Exception as e:
+    except Exception:
         print("The application is unable to connect to vCenter host : {0}{1}{2}\t{3}{4}".format(BColors.FAIL,
                                                                                                 BColors.BOLD, host,
                                                                                                 BColors.CROSS,
