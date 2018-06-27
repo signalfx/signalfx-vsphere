@@ -62,10 +62,15 @@ def _get_config():
             plugin_config['Name'] = conf['Name']
             plugin_config['IngestToken'] = conf['IngestToken']
             plugin_config['IngestEndpoint'] = conf.get('IngestEndpoint', constants.DEFAULT_INGEST_ENDPOINT)
+            plugin_config['IngestTimeout'] = conf.get('IngestTimeout', constants.DEFAULT_INGEST_TIMEOUT)
             if 'MORSyncInterval' in conf:
                 plugin_config['MORSyncInterval'] = conf['MORSyncInterval']
             if 'MetricSyncInterval' in conf:
                 plugin_config['MetricSyncInterval'] = conf['MetricSyncInterval']
+            if 'MORSyncTimeout' in conf:
+                plugin_config['MORSyncTimeout'] = conf['MORSyncTimeout']
+            if 'MetricSyncTimeout' in conf:
+                plugin_config['MetricSyncTimeout'] = conf['MetricSyncTimeout']
             if 'verbosity_level' in conf:
                 plugin_config['verbosity_level'] = conf['verbosity_level']
             if 'IncludeMetrics' in conf:

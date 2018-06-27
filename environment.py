@@ -26,6 +26,7 @@ class Environment(object):
         self._vc_name = config['Name']
         self._ingest_token = config['IngestToken']
         self._ingest_endpoint = config['IngestEndpoint']
+        self._ingest_timeout = config['IngestTimeout']
         self._logger = logging.getLogger(self.get_instance_id())
         self._si = None
         self._connect()
@@ -35,6 +36,8 @@ class Environment(object):
         self._additional_dims = config.get('dimensions', None)
         if 'MORSyncInterval' not in config:
             config['MORSyncInterval'] = constants.DEFAULT_MOR_SYNC_INTERVAL
+        self._mor_sync_timeout = config.get('MORSyncTimeout', constants.DEFAULT_MOR_SYNC_TIMEOUT)
+        self._metric_sync_timeout = config.get('MetricSyncTimeout', constants.DEFAULT_METRIC_SYNC_TIMEOUT)
         self._inventory_mgr = inventory.InventoryManager(self._si, config['MORSyncInterval'],
                                                          config['Name'], self.get_instance_id())
         self._inventory_mgr.start()
@@ -53,11 +56,11 @@ class Environment(object):
 
         """
 
-        if not self._inventory_mgr.block_until_inventory(timeout=constants.INVENTORY_SYNC_TIMEOUT):
-            raise RuntimeError("Did not sync inventory within {0} seconds".format(constants.INVENTORY_SYNC_TIMEOUT))
+        if not self._inventory_mgr.block_until_inventory(timeout=self._mor_sync_timeout):
+            raise RuntimeError("Did not sync inventory within {0} seconds".format(self._mor_sync_timeout))
 
-        if not self._metric_mgr.block_until_has_metrics(timeout=constants.DEFAULT_METRIC_SYNC_INTERVAL):
-            raise RuntimeError("Did not sync metrics within {0} seconds".format(constants.DEFAULT_METRIC_SYNC_INTERVAL))
+        if not self._metric_mgr.block_until_has_metrics(timeout=self._metric_sync_timeout):
+            raise RuntimeError("Did not sync metrics within {0} seconds".format(self._metric_sync_timeout))
 
     def _connect(self):
         """
@@ -104,7 +107,7 @@ class Environment(object):
         """
         client = signalfx.SignalFx()
         ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint,
-                               timeout=constants.DEFAULT_INGEST_TIMEOUT)
+                               timeout=self._ingest_timeout)
         return ingest
 
     def _get_dimensions(self, inv_obj, metric_value):

@@ -5,8 +5,11 @@ config:
     Name: VCenter4
     IngestToken: **************
     IngestEndpoint: 'https://ingest.signalfx.com'
+    IngestTimeout: 10
     MORSyncInterval: 300
     MetricSyncInterval: 300
+    MORSyncTimeout: 300
+    MetricSyncTimeout: 300
     IncludeMetrics:
       host:
         - random.test.metric
