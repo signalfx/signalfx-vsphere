@@ -39,10 +39,11 @@ The following are required configuration keys:
 Optional configuration keys include:
 
 * MORSyncInterval - Time interval at which the vCenter inventory should be synced.
-* MORSyncTimeout - Time interval for which the application should wait for vCenter inventory sync for first time. It should be configured depending on the size of inventory.
+* MORSyncTimeout - The time that the application should wait for the vCenter inventory to synchronize the first time. Larger inventories will require a longer timeout.
 * MetricSyncInterval - Time interval at which the available metrics should be synced.
-* MetricSyncTimeout - Time interval for which the application should wait for available metrics sync for first time.
-* IngestEndpoint - The url of ingest endpoint to send to metrics.
+* MetricSyncTimeout - The time that the application should wait for metrics to synchronize the first time. This should be increased when the volume of metrics is high.
+* IngestEndpoint - The url of signalfx ingest endpoint to send metrics.
+* IngestTimeout - The timeout interval for sending metrics to signalfx ingest endpoint.
 * IncludeMetric - Metrics required for different inventory objects can be included individually. Currently metrics can be added for datacenter, cluster, host and vm.
 * ExcludeMetric - Metrics emitted from different inventory objects can be excluded individually.
 * Dimensions - Additional dimensions to be added to each datapoint.
@@ -57,6 +58,7 @@ config:
     Name: VCenter4
     IngestToken: **************
     IngestEndpoint: 'https://ingest.signalfx.com'
+    IngestTimeout: 20
     MORSyncInterval: 300
     MORSyncTimeout: 1200
     MetricSyncInterval: 300
@@ -76,6 +78,7 @@ config:
     Name: 192.168.1.20
     IngestToken: **************
     IngestEndpoint: 'https://ingest.signalfx.com'
+    IngestTimeout: 10
     MORSyncInterval: 600
     MORSyncTimeout: 900
     MetricSyncInterval: 600
