@@ -4,14 +4,15 @@ DIR="/usr/share/vsphere"
 
 function usage()
 {
-    echo "Shell script to handle vsphere signalfx client"
+    echo "Shell script to handle signalfx vsphere client"
     echo ""
     echo "./vsphere_monitor.sh"
-    echo "\t-h --help"
-    echo "\t--start"
-    echo "\t--stop"
-    echo "\t--restart"
-    echo "\t--status"
+    echo "help"
+    echo "start     Start the vsphere monitoring application"
+    echo "stop      Stop the vsphere monitoring application"
+    echo "restart   Restart the vsphere monitoring application"
+    echo "stats     Check the status of the application"
+    echo "check     Check if application could be run in current environment"
     echo ""
 }
 
@@ -59,10 +60,15 @@ function stop()
     fi
 }
 
+function check()
+{
+    python3 "$DIR/check_version.py" >&2
+}
+
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
     case $PARAM in
-        -h | --help)
+        help)
             usage
             exit
             ;;
@@ -78,6 +84,9 @@ while [ "$1" != "" ]; do
             ;;
         stats)
             status
+            ;;
+        check)
+            check
             ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
