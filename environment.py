@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 import logging
-import ssl
 import signalfx
 import time
-from pyVim.connect import SmartConnect
+from pyVim.connect import SmartConnectNoSSL
 from pyVmomi import vim
 
 import constants
@@ -68,13 +67,8 @@ class Environment(object):
         :return: null
 
         """
-        context = None
-        if hasattr(ssl, 'SSLContext'):
-            context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-            context.verify_mode = ssl.CERT_NONE
         try:
-            self._si = SmartConnect(host=self._host, user=self._username,
-                                    pwd=self._password, sslContext=context)
+            self._si = SmartConnectNoSSL(host=self._host, user=self._username, pwd=self._password)
         except Exception as e:
             self._logger.error("Unable to connect to host {0} : {1}".format(self._host, e))
             self._si = None
