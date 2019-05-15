@@ -102,7 +102,7 @@ def _run(config_list):
         logger.info("Creating environments")
         try:
             env = Environment(plugin_config)
-        except ValueError as e:
+        except ValueError:
             continue
         envs.append(env)
 

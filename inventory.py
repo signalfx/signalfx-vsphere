@@ -209,6 +209,7 @@ class Host(InventoryObject):
         dimensions = InventoryObject._get_dimensions(self).copy()
         additional_dims = {
             'esx_host': self.mor.name,
+            'host': self.mor.name,
             'object_type': 'host',
         }
         dimensions.update(additional_dims)
