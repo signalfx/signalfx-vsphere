@@ -41,7 +41,7 @@ def connect_to_vcenter(host, username, password):
     context = None
     si = None
     if hasattr(ssl, 'SSLContext'):
-        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         context.verify_mode = ssl.CERT_NONE
     try:
         si = SmartConnect(host=host, user=username,
