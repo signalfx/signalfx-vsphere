@@ -102,8 +102,8 @@ def _run(config_list):
         logger.info("Creating environments")
         try:
             env = Environment(plugin_config)
-        except ValueError:
-            continue
+        except Exception as e:
+            logger.error("An error occured while setting up an environment: {0}".format(e))
         envs.append(env)
 
     if len(envs) == 0:

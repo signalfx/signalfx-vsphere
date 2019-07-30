@@ -1,8 +1,7 @@
 import constants
-from pyVim.connect import SmartConnect
+from pyVim.connect import SmartConnectNoSSL
 from pkg_resources import parse_version
 import socket
-import ssl
 import yaml
 
 DEFAULT_VERSION = '6.5.0'
@@ -38,14 +37,9 @@ def is_connected(hostname):
 
 
 def connect_to_vcenter(host, username, password):
-    context = None
     si = None
-    if hasattr(ssl, 'SSLContext'):
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-        context.verify_mode = ssl.CERT_NONE
     try:
-        si = SmartConnect(host=host, user=username,
-                          pwd=password, sslContext=context)
+        si = SmartConnectNoSSL(host=host, user=username, pwd=password)
         print("The application is able to connect to vCenter host : {0}{1}{2}\t{3}{4}".format(BColors.OKGREEN,
                                                                                               BColors.BOLD, host,
                                                                                               BColors.TICK,
