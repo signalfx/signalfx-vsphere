@@ -23,7 +23,7 @@ class InventoryTests(VCRTestBase):
         instance_id = 'VCenterInstance'
         inventory_mgr = inventory.InventoryManager(si, mor_sync_interval, vc_name, instance_id)
         inventory_mgr.start()
-        inventory_mgr.block_until_inventory()
+        inventory_mgr.block_until_inventory(timeout=5)
         current_inventory = inventory_mgr.current_inventory()
         self.assertIsNotNone(current_inventory)
         self.assertEqual(2, len(current_inventory['datacenter']))

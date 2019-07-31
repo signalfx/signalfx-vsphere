@@ -47,40 +47,43 @@ class InventoryManager(threading.Thread):
         :param meta_dims: Meta dimensions of mor
         :return: null
         """
-        if isinstance(mor, vim.Folder):
-            for item in mor.childEntity:
-                self._sync(item, cache, meta_dims)
+        try:
+            if isinstance(mor, vim.Folder):
+                for item in mor.childEntity:
+                    self._sync(item, cache, meta_dims)
 
-        elif isinstance(mor, vim.Datacenter):
-            datacenter = Datacenter(mor, self._perf_manager, self.vc_name)
-            cache['datacenter'].append(datacenter)
-            for item in mor.hostFolder.childEntity:
-                self._sync(item, cache, datacenter.mor_dimensions)
+            elif isinstance(mor, vim.Datacenter):
+                datacenter = Datacenter(mor, self._perf_manager, self.vc_name)
+                cache['datacenter'].append(datacenter)
+                for item in mor.hostFolder.childEntity:
+                    self._sync(item, cache, datacenter.mor_dimensions)
 
-        elif isinstance(mor, vim.ClusterComputeResource):
-            cluster = Cluster(mor, self._perf_manager, self.vc_name, meta_dims)
-            cache['cluster'].append(cluster)
-            for host in mor.host:
-                if hasattr(host, 'vm'):
-                    self._sync(host, cache, cluster.mor_dimensions)
+            elif isinstance(mor, vim.ClusterComputeResource):
+                cluster = Cluster(mor, self._perf_manager, self.vc_name, meta_dims)
+                cache['cluster'].append(cluster)
+                for host in mor.host:
+                    if hasattr(host, 'vm'):
+                        self._sync(host, cache, cluster.mor_dimensions)
 
-        elif isinstance(mor, vim.ComputeResource):
-            for host in mor.host:
-                if hasattr(host, 'vm'):
-                    self._sync(host, cache, meta_dims)
+            elif isinstance(mor, vim.ComputeResource):
+                for host in mor.host:
+                    if hasattr(host, 'vm'):
+                        self._sync(host, cache, meta_dims)
 
-        elif isinstance(mor, vim.HostSystem):
-            host = Host(mor, self._perf_manager, self.vc_name, meta_dims)
-            cache['host'].append(host)
-            for vm in mor.vm:
-                if vm.runtime.powerState == 'poweredOn':
-                    self._sync(vm, cache, host.mor_dimensions)
+            elif isinstance(mor, vim.HostSystem):
+                host = Host(mor, self._perf_manager, self.vc_name, meta_dims)
+                cache['host'].append(host)
+                for vm in mor.vm:
+                    if vm.runtime.powerState == 'poweredOn':
+                        self._sync(vm, cache, host.mor_dimensions)
 
-        elif isinstance(mor, vim.VirtualMachine):
-            cache['vm'].append(VirtualMachine(mor, self._perf_manager, self.vc_name, meta_dims))
+            elif isinstance(mor, vim.VirtualMachine):
+                cache['vm'].append(VirtualMachine(mor, self._perf_manager, self.vc_name, meta_dims))
 
-        else:
-            self._logger.error("Unhandled managed object: {0}".format(mor))
+            else:
+                self._logger.error("Unhandled managed object: {0}".format(mor))
+        except Exception as e:
+            self._logger.error("An error occured while syncing the inventory for {0} : {1}".format(mor, e))
 
     def sync_inventory(self):
         cache = self._new_cache()

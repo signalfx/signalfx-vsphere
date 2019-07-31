@@ -99,9 +99,13 @@ class Environment(object):
         :return: Ingest Client
 
         """
-        client = signalfx.SignalFx()
-        ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint,
-                               timeout=self._ingest_timeout)
+        try:
+            client = signalfx.SignalFx()
+            ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint,
+                                   timeout=self._ingest_timeout)
+        except Exception as e:
+            self._logger.error("An error occured when creating the ingest client: {0}".format(e))
+
         return ingest
 
     def _get_dimensions(self, inv_obj, metric_value):
@@ -134,16 +138,20 @@ class Environment(object):
         result = query_results[0]
         timestamp = int(time.time()) * 1000
         datapoints = []
-        for metric in result.value:
-            key = metric.id.counterId
-            metric_name = monitored_metrics[key].name
-            metric_type = monitored_metrics[key].metric_type
-            dimensions = self._get_dimensions(inv_obj, metric)
-            value = metric.value[0]
-            if monitored_metrics[key].units == 'percent':
-                value /= 100.0
-            dp = self.Datapoint(metric_name, metric_type, value, dimensions, timestamp)
-            datapoints.append(dp)
+        try:
+            for metric in result.value:
+                key = metric.id.counterId
+                metric_name = monitored_metrics[key].name
+                metric_type = monitored_metrics[key].metric_type
+                dimensions = self._get_dimensions(inv_obj, metric)
+                value = metric.value[0]
+                if monitored_metrics[key].units == 'percent':
+                    value /= 100.0
+                dp = self.Datapoint(metric_name, metric_type, value, dimensions, timestamp)
+                datapoints.append(dp)
+        except Exception as e:
+            self._logger.error("Exception while parsing query: {0}".format(e))
+
         return datapoints
 
     def _build_payload(self, dps):
@@ -158,29 +166,33 @@ class Environment(object):
         start = 0
         delta = 100
         end = delta if dp_count > delta else dp_count
-        for x in range(0, int(dp_count / delta) + 1):
-            gauges = []
-            counters = []
-            for dp in dps[start: end]:
-                dp.dimensions['metric_source'] = constants.METRIC_SOURCE
-                payload_obj = {
-                    'metric': dp.metric_name,
-                    'value': dp.value,
-                    'dimensions': dp.dimensions,
-                    'timestamp': dp.timestamp
-                }
-                if dp.metric_type == 'gauge':
-                    gauges.append(payload_obj)
-                elif dp.metric_type == 'counter':
-                    counters.append(payload_obj)
-            payload.append({
-                'gauges': gauges,
-                'counters': counters
-            })
-            start = end
-            end = end + delta
-            if end > dp_count:
-                end = dp_count
+        try:
+            for x in range(0, int(dp_count / delta) + 1):
+                gauges = []
+                counters = []
+                for dp in dps[start: end]:
+                    dp.dimensions['metric_source'] = constants.METRIC_SOURCE
+                    payload_obj = {
+                        'metric': dp.metric_name,
+                        'value': dp.value,
+                        'dimensions': dp.dimensions,
+                        'timestamp': dp.timestamp
+                    }
+                    if dp.metric_type == 'gauge':
+                        gauges.append(payload_obj)
+                    elif dp.metric_type == 'counter':
+                        counters.append(payload_obj)
+                payload.append({
+                    'gauges': gauges,
+                    'counters': counters
+                })
+                start = end
+                end = end + delta
+                if end > dp_count:
+                    end = dp_count
+        except Exception as e:
+            self._logger.error("Exception while building payload : {0}".format(e))
+
         return payload
 
     def _dispatch_metrics(self, payload):
@@ -216,7 +228,10 @@ class Environment(object):
                         intervalId=inv_obj.INSTANT_INTERVAL,
                         maxSample=1, format='normal'
                     )
-                    results = perf_manager.QueryPerf(querySpec=[query_spec])
+                    try:
+                        results = perf_manager.QueryPerf(querySpec=[query_spec])
+                    except Exception as e:
+                        self._logger.error("Exception while making performance query : {0}".format(e))
                     dps = self._parse_query(inv_obj, results, monitored_metrics[mor])
                     payload = self._build_payload(dps)
                     self._dispatch_metrics(payload)
