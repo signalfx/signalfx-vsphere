@@ -1,5 +1,4 @@
 flake8
-requests
 pyvmomi
 pyyaml
 vcrpy

@@ -117,8 +117,8 @@ def _run(config_list):
                     """ Executes reading and sending of metrics."""
                     env.read_metric_values()
                     logger.info("Sent metrics for env : {0}".format(env.get_instance_id()))
-                except Exception as e:
-                    logger.error("Failed to send metrics for env {0} : {1}".format(env.get_instance_id(), e))
+                except Exception:
+                    logger.exception("Failed to send metrics for env {0}".format(env.get_instance_id()))
                     continue
             end_time = datetime.datetime.now()
             exec_time = (end_time - start_time).seconds

@@ -32,6 +32,8 @@ class Environment(object):
         if self._si is None:
             raise ValueError("Unable to connect to host")
         self._ingest = self._create_signalfx_ingest()
+        if self._ingest is None:
+            raise ValueError("Unable to create ingest client")
         self._additional_dims = config.get('dimensions', None)
         if 'MORSyncInterval' not in config:
             config['MORSyncInterval'] = constants.DEFAULT_MOR_SYNC_INTERVAL
@@ -99,6 +101,7 @@ class Environment(object):
         :return: Ingest Client
 
         """
+        ingest = None
         try:
             client = signalfx.SignalFx()
             ingest = client.ingest(self._ingest_token, endpoint=self._ingest_endpoint,
@@ -135,10 +138,10 @@ class Environment(object):
         :return: list
 
         """
-        result = query_results[0]
-        timestamp = int(time.time()) * 1000
         datapoints = []
+        timestamp = int(time.time()) * 1000
         try:
+            result = query_results[0]
             for metric in result.value:
                 key = metric.id.counterId
                 metric_name = monitored_metrics[key].name
@@ -150,7 +153,7 @@ class Environment(object):
                 dp = self.Datapoint(metric_name, metric_type, value, dimensions, timestamp)
                 datapoints.append(dp)
         except Exception as e:
-            self._logger.error("Exception while parsing query: {0}".format(e))
+            self._logger.error("Error while parsing query results: {0} : {1}".format(query_results, e))
 
         return datapoints
 
@@ -232,9 +235,12 @@ class Environment(object):
                         results = perf_manager.QueryPerf(querySpec=[query_spec])
                     except Exception as e:
                         self._logger.error("Exception while making performance query : {0}".format(e))
-                    dps = self._parse_query(inv_obj, results, monitored_metrics[mor])
-                    payload = self._build_payload(dps)
-                    self._dispatch_metrics(payload)
+                    if results:
+                        dps = self._parse_query(inv_obj, results, monitored_metrics[mor])
+                        payload = self._build_payload(dps)
+                        self._dispatch_metrics(payload)
+                    else:
+                        self._logger.warning("Empty result from query : ".format(query_spec))
 
     def stop_managers(self):
         """
