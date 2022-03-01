@@ -240,7 +240,7 @@ class Environment(object):
                         payload = self._build_payload(dps)
                         self._dispatch_metrics(payload)
                     else:
-                        self._logger.warning("Empty result from query : ".format(query_spec))
+                        self._logger.warning("Empty result from query : {0}".format(query_spec))
 
     def stop_managers(self):
         """
